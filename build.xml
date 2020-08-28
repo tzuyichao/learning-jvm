@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="learning-jvm">
+    <property environment="env"/>
+    <property name="src.dir" value="src/main/java"/>
+    <property name="classes.dir" value="build/classes"/>
+
+    <path id="project.class.path">
+    </path>
+
+    <target name="prepare">
+        <mkdir dir="${classes.dir}"/>
+    </target>
+
+    <target name="compile" depends="prepare">
+        <javac encoding="utf-8"
+               srcdir="${src.dir}"
+               destdir="${classes.dir}"
+               includeantruntime="false"
+               source="12"
+               target="12">
+            <classpath refid="project.class.path"></classpath>
+            <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED" />
+            <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
+        </javac>
+    </target>
+
+</project>
