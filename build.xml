@@ -2,12 +2,14 @@
 <project name="learning-jvm" default="compile">
     <property environment="env"/>
     <property name="src.dir" value="src/main/java"/>
-    <property name="classes.dir" value="build/classes"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
 
     <path id="project.class.path">
     </path>
 
     <target name="prepare">
+        <mkdir dir="${build.dir}"/>
         <mkdir dir="${classes.dir}"/>
     </target>
 
@@ -16,8 +18,8 @@
                srcdir="${src.dir}"
                destdir="${classes.dir}"
                includeantruntime="false"
-               source="12"
-               target="12">
+               source="14"
+               target="14">
             <classpath refid="project.class.path"></classpath>
             <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED" />
             <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
