@@ -6,6 +6,7 @@
     <property name="classes.dir" value="${build.dir}/classes"/>
 
     <path id="project.class.path">
+        <pathelement path="${classes.dir}" />
     </path>
 
     <target name="prepare">
@@ -18,12 +19,18 @@
                srcdir="${src.dir}"
                destdir="${classes.dir}"
                includeantruntime="false"
+               defaultexcludes="yes"
+               excludes="client/*.java"
                source="14"
                target="14">
             <classpath refid="project.class.path"></classpath>
             <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED" />
             <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
         </javac>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build.dir}" />
     </target>
 
 </project>
