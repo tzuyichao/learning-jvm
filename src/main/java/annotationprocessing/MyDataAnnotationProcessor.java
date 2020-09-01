@@ -1,28 +1,29 @@
 package annotationprocessing;
 
+import com.sun.source.tree.Tree;
+import com.sun.tools.javac.api.JavacTrees;
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.tree.TreeTranslator;
+import com.sun.tools.javac.util.*;
+
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
-import com.sun.source.tree.Tree;
-import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.processing.JavacProcessingEnvironment;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeTranslator;
-import com.sun.tools.javac.util.*;
-import com.sun.tools.javac.api.JavacTrees;
-import com.sun.tools.javac.tree.TreeMaker;
-
-import static com.sun.tools.javac.code.Flags.PUBLIC;
+import static com.sun.tools.javac.code.Flags.*;
 
 
 /**
  * from 深入理解JVM bytecode example
  */
-@SupportedAnnotationTypes("annotationprocessing.MyData")
+@SupportedAnnotationTypes({"annotationprocessing.MyData", "annotationprocessing.ToString"})
 @SupportedSourceVersion(SourceVersion.RELEASE_14)
 public class MyDataAnnotationProcessor extends AbstractProcessor {
     private JavacTrees javacTrees;
@@ -40,7 +41,14 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(MyData.class);
+        Set<? extends Element> myDataElements = roundEnv.getElementsAnnotatedWith(MyData.class);
+        processMyData(myDataElements);
+        Set<? extends Element> toStringElements = roundEnv.getElementsAnnotatedWith(ToString.class);
+        processToString(toStringElements);
+        return true;
+    }
+
+    private void processMyData(Set<? extends Element> elements) {
         for(Element element: elements) {
             System.out.println("Processing " + element.getSimpleName().toString());
             JCTree tree = javacTrees.getTree(element);
@@ -55,10 +63,53 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
                                 jcClassDecl.defs = jcClassDecl.defs.prepend(genGetterMethod(it));
                                 jcClassDecl.defs = jcClassDecl.defs.prepend(genSetterMethod(it));
                             });
+                    jcClassDecl.defs = jcClassDecl.defs.prepend(genIdVariable());
                 }
             });
         }
-        return true;
+    }
+
+    private void processToString(Set<? extends Element> elements) {
+        for(Element element: elements) {
+            System.out.println("process ToString for " + element.getSimpleName().toString());
+            JCTree tree = javacTrees.getTree(element);
+            tree.accept(new TreeTranslator() {
+                @Override
+                public void visitClassDef(JCTree.JCClassDecl jcClassDecl) {
+                    jcClassDecl.defs = jcClassDecl.defs.prepend(genToString());
+                }
+            });
+        }
+    }
+
+    private JCTree.JCVariableDecl genIdVariable() {
+        JCTree.JCModifiers modifiers = treeMaker.Modifiers(PRIVATE | STATIC | FINAL);
+        Name id = names.fromString("serialVersionUID");
+        JCTree.JCExpression varType = treeMaker.Type(new Type.JCPrimitiveType(TypeTag.LONG, null));
+        JCTree.JCExpression init = treeMaker.Literal(1L);
+        return treeMaker.VarDef(modifiers, id, varType, init);
+    }
+
+    private JCTree.JCMethodDecl genToString() {
+        JCTree.JCModifiers modifiers = treeMaker.Modifiers(PUBLIC);
+        Name toStringName = names.fromString("toString");
+
+        JCTree.JCReturn returnStatement = treeMaker.Return(
+                treeMaker.Literal("test")
+        );
+
+        ListBuffer<JCTree.JCStatement> statements = new ListBuffer<JCTree.JCStatement>().append(returnStatement);
+
+        JCTree.JCIdent java = treeMaker.Ident(names.fromString("java"));
+        JCTree.JCExpression lang = treeMaker.Select(java, names.fromString("lang"));
+        JCTree.JCExpression string = treeMaker.Select(lang, names.fromString("String"));
+
+        JCTree.JCExpression returnMethodType = string;
+        JCTree.JCBlock body = treeMaker.Block(0, statements.toList());
+        List<JCTree.JCTypeParameter> methodGenericParamList = List.nil();
+        List<JCTree.JCVariableDecl> parameterList = List.nil();
+        List<JCTree.JCExpression> thrownCauseList = List.nil();
+        return treeMaker.MethodDef(modifiers, toStringName, returnMethodType, methodGenericParamList, parameterList, thrownCauseList, body, null);
     }
 
     private JCTree.JCMethodDecl genGetterMethod(JCTree.JCVariableDecl jcVariableDecl) {

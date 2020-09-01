@@ -9,7 +9,7 @@
         <pathelement path="${classes.dir}" />
     </path>
 
-    <target name="prepare">
+    <target name="prepare" depends="clean">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${classes.dir}"/>
     </target>
