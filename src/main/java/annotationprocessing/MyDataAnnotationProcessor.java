@@ -83,7 +83,7 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
     }
 
     private JCTree.JCVariableDecl genIdVariable() {
-        JCTree.JCModifiers modifiers = treeMaker.Modifiers(PRIVATE | STATIC | FINAL);
+        JCTree.JCModifiers modifiers = treeMaker.Modifiers(PRIVATE + STATIC + FINAL);
         Name id = names.fromString("serialVersionUID");
         JCTree.JCExpression varType = treeMaker.Type(new Type.JCPrimitiveType(TypeTag.LONG, null));
         JCTree.JCExpression init = treeMaker.Literal(1L);
