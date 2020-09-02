@@ -93,15 +93,51 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
     private JCTree.JCMethodDecl genToString() {
         JCTree.JCModifiers modifiers = treeMaker.Modifiers(PUBLIC);
         Name toStringName = names.fromString("toString");
-
-        JCTree.JCReturn returnStatement = treeMaker.Return(
-                treeMaker.Literal("test")
-        );
-
-        ListBuffer<JCTree.JCStatement> statements = new ListBuffer<JCTree.JCStatement>().append(returnStatement);
-
+        ListBuffer<JCTree.JCStatement> statements = new ListBuffer<JCTree.JCStatement>();
         JCTree.JCIdent java = treeMaker.Ident(names.fromString("java"));
         JCTree.JCExpression lang = treeMaker.Select(java, names.fromString("lang"));
+
+        JCTree.JCExpression varType = treeMaker.Select(lang, names.fromString("StringBuilder"));
+        Name result = names.fromString("result");
+        JCTree.JCModifiers resultModifiers = treeMaker.Modifiers(FINAL);
+//        JCTree.JCVariableDecl resultIdent = treeMaker.VarDef(resultModifiers, result, varType, null);
+//        statements.append(resultIdent);
+
+        JCTree.JCExpression constructor = treeMaker.Select(varType, names.fromString("<init>"));
+        System.out.println(constructor.toString());
+        System.out.println(constructor instanceof JCTree.JCMethodInvocation);
+
+        JCTree.JCNewClass stringBuilderClass = treeMaker.NewClass(null,
+                com.sun.tools.javac.util.List.nil(),
+                varType,
+                com.sun.tools.javac.util.List.nil(),
+                null);
+
+        JCTree.JCVariableDecl resultIdent = treeMaker.VarDef(resultModifiers, result, varType, stringBuilderClass);
+        System.out.println(resultIdent.toString());
+        statements.append(resultIdent);
+
+        JCTree.JCExpressionStatement append = treeMaker.Exec(treeMaker.Apply(
+                com.sun.tools.javac.util.List.nil(),
+                treeMaker.Select(
+                        treeMaker.Ident(names.fromString("result")),
+                        names.fromString("append")),
+                com.sun.tools.javac.util.List.of(treeMaker.Literal("test"))
+        ));
+        statements.append(append);
+
+        JCTree.JCReturn returnStatement = treeMaker.Return(
+                treeMaker.Apply(
+                        com.sun.tools.javac.util.List.nil(),
+                        treeMaker.Select(
+                                treeMaker.Ident(names.fromString("result")),
+                                names.fromString("toString")),
+                        com.sun.tools.javac.util.List.nil()
+                )
+        );
+        statements.append(returnStatement);
+        System.out.println(statements);
+
         JCTree.JCExpression string = treeMaker.Select(lang, names.fromString("String"));
 
         JCTree.JCExpression returnMethodType = string;
