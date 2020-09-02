@@ -90,22 +90,23 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
         return treeMaker.VarDef(modifiers, id, varType, init);
     }
 
+    private JCTree.JCExpression query(String...namePath) {
+        JCTree.JCExpression prev = treeMaker.Ident(names.fromString(namePath[0]));
+        for(int i=1; i<namePath.length; i++) {
+            prev = treeMaker.Select(prev, names.fromString(namePath[i]));
+        }
+        return prev;
+    }
+
     private JCTree.JCMethodDecl genToString() {
         JCTree.JCModifiers modifiers = treeMaker.Modifiers(PUBLIC);
         Name toStringName = names.fromString("toString");
         ListBuffer<JCTree.JCStatement> statements = new ListBuffer<JCTree.JCStatement>();
-        JCTree.JCIdent java = treeMaker.Ident(names.fromString("java"));
-        JCTree.JCExpression lang = treeMaker.Select(java, names.fromString("lang"));
 
-        JCTree.JCExpression varType = treeMaker.Select(lang, names.fromString("StringBuilder"));
+        JCTree.JCExpression varType = query("java", "lang", "StringBuilder");
+
         Name result = names.fromString("result");
-        JCTree.JCModifiers resultModifiers = treeMaker.Modifiers(FINAL);
-//        JCTree.JCVariableDecl resultIdent = treeMaker.VarDef(resultModifiers, result, varType, null);
-//        statements.append(resultIdent);
-
-        JCTree.JCExpression constructor = treeMaker.Select(varType, names.fromString("<init>"));
-        System.out.println(constructor.toString());
-        System.out.println(constructor instanceof JCTree.JCMethodInvocation);
+        JCTree.JCModifiers resultModifiers = treeMaker.Modifiers(Flags.PARAMETER);
 
         JCTree.JCNewClass stringBuilderClass = treeMaker.NewClass(null,
                 com.sun.tools.javac.util.List.nil(),
@@ -116,6 +117,71 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
         JCTree.JCVariableDecl resultIdent = treeMaker.VarDef(resultModifiers, result, varType, stringBuilderClass);
         System.out.println(resultIdent.toString());
         statements.append(resultIdent);
+
+        JCTree.JCExpression runnableType = query("java", "lang", "Runnable");
+
+        Name runnable = names.fromString("r");
+        JCTree.JCModifiers rModifiers = treeMaker.Modifiers(Flags.PARAMETER);
+        ListBuffer<JCTree.JCStatement> runStatements = new ListBuffer<>();
+        JCTree.JCBlock rBody = treeMaker.Block(0, runStatements.toList());
+
+        JCTree.JCMethodDecl runMethod = treeMaker.MethodDef(
+                treeMaker.Modifiers(PUBLIC),
+                names.fromString("run"),
+                treeMaker.Type(new Type.JCVoidType()),
+                com.sun.tools.javac.util.List.nil(),
+                com.sun.tools.javac.util.List.nil(),
+                com.sun.tools.javac.util.List.nil(),
+                rBody,
+                null
+        );
+
+        List<JCTree> defs = List.of(runMethod);
+
+        JCTree.JCClassDecl classDecl = treeMaker.AnonymousClassDef(treeMaker.Modifiers(PARAMETER),
+                defs);
+
+        JCTree.JCNewClass rClass = treeMaker.NewClass(null,
+                com.sun.tools.javac.util.List.nil(),
+                runnableType,
+                com.sun.tools.javac.util.List.nil(),
+                classDecl);
+
+        JCTree.JCVariableDecl rIdent = treeMaker.VarDef(rModifiers, runnable, runnableType, rClass);
+        System.out.println(rIdent.toString());
+
+        statements.append(rIdent);
+
+        Name runName = names.fromString("r2");
+        JCTree.JCLambda lambda = treeMaker.Lambda(com.sun.tools.javac.util.List.nil(),
+                rBody);
+        JCTree.JCNewClass runnableClass = treeMaker.NewClass(lambda,
+                com.sun.tools.javac.util.List.nil(),
+                runnableType,
+                com.sun.tools.javac.util.List.nil(),
+                null);
+        JCTree.JCVariableDecl runnableIdent = treeMaker.VarDef(rModifiers, runName, runnableType, lambda);
+        System.out.println(runnableIdent.toString());
+        statements.append(runnableIdent);
+
+        JCTree.JCClassDecl enclosingClassDecl = treeMaker.ClassDef(
+                treeMaker.Modifiers(PARAMETER),
+                names.fromString("Test"),
+                com.sun.tools.javac.util.List.nil(),
+                query("java", "lang", "Object"),
+                com.sun.tools.javac.util.List.nil(),
+                com.sun.tools.javac.util.List.nil());
+        System.out.println(enclosingClassDecl.toString());
+        //statements.append(enclosingClassDecl);
+        JCTree.JCNewClass testClass = treeMaker.NewClass(enclosingClassDecl.getExtendsClause(),
+                com.sun.tools.javac.util.List.nil(),
+                treeMaker.Type(enclosingClassDecl.type),
+                com.sun.tools.javac.util.List.nil(),
+                null);
+        System.out.println(testClass.toString());
+        JCTree.JCVariableDecl testIdent = treeMaker.VarDef(rModifiers, names.fromString("qq"), treeMaker.Type(enclosingClassDecl.type), testClass);
+        System.out.println(testIdent.toString());
+        //statements.append(testIdent);
 
         JCTree.JCExpressionStatement append = treeMaker.Exec(treeMaker.Apply(
                 com.sun.tools.javac.util.List.nil(),
@@ -138,7 +204,7 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
         statements.append(returnStatement);
         System.out.println(statements);
 
-        JCTree.JCExpression string = treeMaker.Select(lang, names.fromString("String"));
+        JCTree.JCExpression string = query("java", "lang", "String");
 
         JCTree.JCExpression returnMethodType = string;
         JCTree.JCBlock body = treeMaker.Block(0, statements.toList());
