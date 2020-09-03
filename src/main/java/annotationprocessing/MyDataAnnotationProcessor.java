@@ -63,7 +63,9 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
                                 jcClassDecl.defs = jcClassDecl.defs.prepend(genGetterMethod(it));
                                 jcClassDecl.defs = jcClassDecl.defs.prepend(genSetterMethod(it));
                             });
-                    jcClassDecl.defs = jcClassDecl.defs.prepend(genIdVariable());
+                    jcClassDecl.defs = jcClassDecl.defs.prepend(genSerialVersionUIDVariable());
+                    //jcClassDecl.defs = jcClassDecl.defs.prepend(genVariableMethod2());
+                    jcClassDecl.defs = jcClassDecl.defs.prepend(genMethodWithInitVariable());
                 }
             });
         }
@@ -82,12 +84,63 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private JCTree.JCVariableDecl genIdVariable() {
-        JCTree.JCModifiers modifiers = treeMaker.Modifiers(PRIVATE | STATIC | FINAL);
+    private JCTree.JCVariableDecl genSerialVersionUIDVariable() {
+        JCTree.JCModifiers modifiers = treeMaker.Modifiers(PRIVATE + STATIC + FINAL);
         Name id = names.fromString("serialVersionUID");
         JCTree.JCExpression varType = treeMaker.Type(new Type.JCPrimitiveType(TypeTag.LONG, null));
         JCTree.JCExpression init = treeMaker.Literal(1L);
         return treeMaker.VarDef(modifiers, id, varType, init);
+    }
+
+    private JCTree.JCMethodDecl genMethodWithInitVariable() {
+        JCTree.JCVariableDecl valVariable = treeMaker.VarDef(
+                treeMaker.Modifiers(PARAMETER),
+                names.fromString("val"),
+                query("java", "lang", "Long"),
+                treeMaker.Literal(1L));
+        System.out.println(valVariable.toString());
+        ListBuffer<JCTree.JCStatement> statements = new ListBuffer<JCTree.JCStatement>();
+        JCTree.JCExpression systemOut = query("java", "lang", "System", "out");
+        System.out.println(systemOut.toString());
+        JCTree.JCExpressionStatement printToString = treeMaker.Exec(
+                treeMaker.Apply(
+                        com.sun.tools.javac.util.List.nil(),
+                        treeMaker.Select(
+                                systemOut,
+                                names.fromString("println")),
+                        com.sun.tools.javac.util.List.of(
+                                treeMaker.Apply(
+                                                com.sun.tools.javac.util.List.nil(),
+                                                treeMaker.Select(
+                                                        treeMaker.Ident(names._this),
+                                                        names.fromString("toString")),
+                                                com.sun.tools.javac.util.List.nil())
+                        )
+                )
+        );
+        statements.append(printToString);
+        JCTree.JCExpressionStatement printToVal = treeMaker.Exec(
+                treeMaker.Apply(
+                        com.sun.tools.javac.util.List.nil(),
+                        treeMaker.Select(
+                                systemOut,
+                                names.fromString("println")),
+                        com.sun.tools.javac.util.List.of(treeMaker.Ident(names.fromString("val")))
+                )
+        );
+        statements.append(printToVal);
+        JCTree.JCBlock body = treeMaker.Block(0, statements.toList());
+        JCTree.JCMethodDecl runMethodDecl = treeMaker.MethodDef(treeMaker.Modifiers(PUBLIC),
+                names.fromString("run"),
+                treeMaker.Type(new Type.JCVoidType()),
+                com.sun.tools.javac.util.List.nil(),
+                com.sun.tools.javac.util.List.of(valVariable),
+                com.sun.tools.javac.util.List.nil(),
+                body,
+                null
+        );
+        System.out.println(runMethodDecl.toString());
+        return runMethodDecl;
     }
 
     private JCTree.JCExpression query(String...namePath) {
