@@ -18,9 +18,6 @@ public class JavaCompilerTest {
         compiler.keepComments = true;
 
         JCTree.JCCompilationUnit compilationUnit = compiler.parse("src/main/java/client/User.java");
-//        JavacTrees javacTrees = JavacTrees.instance(context);
-//        TreeMaker treeMaker = TreeMaker.instance(context);
-//        Names names = Names.instance(context);
 
         compilationUnit.defs.stream()
                 .forEach(jcTree -> {
@@ -28,8 +25,6 @@ public class JavaCompilerTest {
                     System.out.println(jcTree.getKind());
                     listVariable(jcTree);
                 });
-
-
     }
 
     private static void listVariable(JCTree tree) {
@@ -40,7 +35,7 @@ public class JavaCompilerTest {
                         .filter(it -> it.getKind().equals(Tree.Kind.VARIABLE))
                         .map(it -> (JCTree.JCVariableDecl) it)
                         .forEach(it -> {
-                            System.out.println(it.getName() + ": " + it.getKind() + ": " + it.getType());
+                            System.out.println(it.getName() + ":" + it.getKind() + ":" + it.getType());
                         });
             }
         });

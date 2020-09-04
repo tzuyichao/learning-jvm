@@ -39,7 +39,7 @@ public class JavaCompilerTest2 {
                         .filter(it -> it.getKind().equals(Tree.Kind.VARIABLE))
                         .map(it -> (JCTree.JCVariableDecl) it)
                         .forEach(it -> {
-                            System.out.println(it.getName() + ": " + it.getKind() + ": " + it.getType());
+                            System.out.println(it.getName() + ":" + it.getKind() + ":" + it.getType());
                         });
             }
         });
