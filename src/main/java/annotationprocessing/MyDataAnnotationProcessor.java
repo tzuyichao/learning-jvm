@@ -78,6 +78,12 @@ public class MyDataAnnotationProcessor extends AbstractProcessor {
             tree.accept(new TreeTranslator() {
                 @Override
                 public void visitClassDef(JCTree.JCClassDecl jcClassDecl) {
+                    jcClassDecl.defs.stream()
+                            .filter(it -> it.getKind().equals(Tree.Kind.VARIABLE))
+                            .map(it -> (JCTree.JCVariableDecl)it)
+                            .forEach(it -> {
+                                System.out.println("name:" + it.getName() + ", type:" + it.vartype);
+                            });
                     jcClassDecl.defs = jcClassDecl.defs.prepend(genToString());
                 }
             });

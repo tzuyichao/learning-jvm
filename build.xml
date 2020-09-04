@@ -29,6 +29,7 @@
             <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED" />
             <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED" />
             <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
+            <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED" />
             <compilerarg line="--add-exports jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED" />
         </javac>
     </target>
