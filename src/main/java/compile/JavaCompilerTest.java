@@ -17,10 +17,7 @@ public class JavaCompilerTest {
         compiler.genEndPos = true;
         compiler.keepComments = true;
 
-        JCTree.JCCompilationUnit compilationUnit = compiler.parse("src/main/java/client/User.java");
-//        JavacTrees javacTrees = JavacTrees.instance(context);
-//        TreeMaker treeMaker = TreeMaker.instance(context);
-//        Names names = Names.instance(context);
+        @SuppressWarnings("deprecation") JCTree.JCCompilationUnit compilationUnit = compiler.parse("src/main/java/client/User.java");
 
         compilationUnit.defs.stream()
                 .forEach(jcTree -> {
