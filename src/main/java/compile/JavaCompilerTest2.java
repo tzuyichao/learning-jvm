@@ -27,8 +27,6 @@ public class JavaCompilerTest2 {
                     System.out.println(jcTree.getKind());
                     listVariable(jcTree);
                 });
-
-
     }
 
     private static void listVariable(JCTree tree) {
