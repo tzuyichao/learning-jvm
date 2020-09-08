@@ -5,6 +5,9 @@ import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.util.Context;
 
+/**
+ * from dive into jvm bytecode
+ */
 public class ParseTest {
     public static void main(String[] args) {
         ScannerFactory scannerFactory = ScannerFactory.instance(new Context());

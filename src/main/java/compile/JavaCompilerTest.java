@@ -17,7 +17,7 @@ public class JavaCompilerTest {
         compiler.genEndPos = true;
         compiler.keepComments = true;
 
-        JCTree.JCCompilationUnit compilationUnit = compiler.parse("src/main/java/client/User.java");
+        @SuppressWarnings("deprecation") JCTree.JCCompilationUnit compilationUnit = compiler.parse("src/main/java/client/User.java");
 
         compilationUnit.defs.stream()
                 .forEach(jcTree -> {
@@ -35,7 +35,7 @@ public class JavaCompilerTest {
                         .filter(it -> it.getKind().equals(Tree.Kind.VARIABLE))
                         .map(it -> (JCTree.JCVariableDecl) it)
                         .forEach(it -> {
-                            System.out.println(it.getName() + ":" + it.getKind() + ":" + it.getType());
+                            System.out.println(it.getName() + ": " + it.getKind() + ": " + it.getType());
                         });
             }
         });
